@@ -1,0 +1,15 @@
+.product_list{
+    div {
+        small{
+            font-size: x-small;
+        }
+    }
+    div:hover{
+        background-color: #f9f9f9;
+        img{
+            transform: scale(0.8);
+            transition: all 0.2 sec;
+        }
+
+    }
+}

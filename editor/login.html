@@ -1,0 +1,57 @@
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="../img/favicon.ico">
+
+    <title>Names Lexicon ! login</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="./css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom styles for this template -->
+    <link href="./css/login.css" rel="stylesheet">
+    <link href="./css/style.css" rel="stylesheet">
+  </head>
+
+  <body>
+    <form class="form-signin border p-5 shadow mb-5 rounded rounded-lg" autocomplete="off">
+      <div class="text-center mb-4">
+        <a href="../"><img class="mb-4" src="../img/nl.png" alt="" width="72" height="72"></a>
+        <h1 class="h3 mb-3 font-weight-normal text-muted border-bottom">NL Admin Login</h1>
+      </div>
+
+      <div class="form-group">
+        <input type="email" id="email" name="email"  class="form-control form-control-lg"  placeholder="Email address"  autocomplete="off" required />
+      </div>
+
+      <div class="form-group">
+        <input type="password" id="pwd" name="pwd" class="form-control form-control-lg" placeholder="password" autocomplete="off" required>
+        <!-- <label for="inputPassword">Password</label> -->
+      </div>
+
+      <div class="form-group result"></div>
+      <input type="hidden" name="action" value="login">
+
+      <!-- <div class="checkbox my-4">
+        <label>  <input type="checkbox" value="remember-me" /> Remember me </label>
+        <label class ="float-right" style="color:#20bbeb;">  <a href="./recover.html"> Forgot Password ? </a></label>
+      </div> -->
+      <button class="btn btn-primary btn-block mt-4" type="submit">Sign in</button>
+      <p class="mt-5 mb-3 text-muted text-center">&copy; <span id="todaysDate"></span> All Rights Reserved.</p>
+    </form>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js" crossorigin="anonymous"></script>
+    <script src="./js/popper.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/admin-lexi.js"></script>
+    <script>
+        $(document).ready(function(){
+           let d   = new Date();
+            document.getElementById("todaysDate").innerHTML = d.getFullYear();
+        });
+    </script>
+  </body>
+</html>

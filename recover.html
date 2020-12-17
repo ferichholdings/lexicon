@@ -1,0 +1,48 @@
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="./img/favicon.ico">
+
+    <title>Names Lexicon ! Passowrd Recovery</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="./css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom styles for this template -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+    <link href="./css/login.css" rel="stylesheet">
+    <link href="./css/style.css" rel="stylesheet">
+  </head>
+
+  <body>
+    <form class="form-signin border p-5 shadow mb-5 rounded rounded-lg">
+      <div class="text-center mb-4">
+        <a href="./"> <img class="mb-4" src="./img/nl.png" alt="" width="72" height="72"> </a>
+        <h1 class="h3 mb-3 font-weight-normal border-bottom"> Password Recovery </h1>
+      </div>
+
+      <div class="form-group">
+        <input type="email" id="inputEmail" name="inputEmail" placeholder ="Email Address" class="form-control form-control-lg" required />
+      </div>
+
+      <div class="checkbox mb-3">
+        <label class ="mx-0" style="color:rgb(32, 187, 235);"> <i class="fa fa-lock"></i> <a href="./login.html"> Login </a> </label>
+      </div>
+
+      <button class="btn btn-primary btn-block" type="submit"> Submit </button>
+      <p class="mt-5 mb-3 text-muted text-center"> Names Lexicon &copy; <span id="todaysDate"></span> All Rights Reserved</p>
+    </form>
+    <script src="./js/jquery.min.js"></script>
+    <script src="./js/bootstrap.min.js"></script>
+    <script>
+        $(document).ready(function(){
+           let d   = new Date();
+            document.getElementById("todaysDate").innerHTML = d.getFullYear();
+        });
+    </script>
+  </body>
+</html>
