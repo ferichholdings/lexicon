@@ -26,6 +26,8 @@ if($admin-> getAdminByEmail($_SESSION["NL_ADMIN_USER_LIVE"])['adminLevel']==0){
                             <th>Name</th>
 							<th>Email</th>
 							<th>Admin Level </th>
+							<th>&sum; Names Completed </th>
+							<th>&sum; Names In-Progress </th>
                             <th>Date Created</th>
                             <th>Actions</th>
                         </tr>

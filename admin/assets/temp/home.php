@@ -113,6 +113,7 @@
 				<th>Date Added</th>
 				<th>Status</th>
 				<th>Total LP</th>
+				<th>Assigned to</th>
 				<th>Actions</th>
 			</tr>
 		</thead>

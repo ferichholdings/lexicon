@@ -637,8 +637,6 @@ private function workOnNameCompleted($email){
 }
 //////////////////////////////////  COMPLETED WORKING ON NAME <END/>
 
-
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
  public function editName($email){
     // `namesId`,`name`,`otherForms`,`nameUsage`,`gender`,`origin`,`pronounce`,`meaning`,`history`,`personality`,`addedBy`,`status`,`date_created`, `date_updated`
@@ -673,8 +671,6 @@ private function workOnNameCompleted($email){
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
 //////////////// DELETE NAME ADDED BY THIS ADMIN  //////////////////
 private function deleteName($email){
     $con          = self::con(); 
@@ -695,7 +691,6 @@ private function deleteName($email){
 
 }
 //////////////// DELETE NAME ADDED BY THIS ADMIN  </end> //////////////////
-
 
 // Use this to Check the points against names part
 public function isPointGiven($nameId){
@@ -972,14 +967,27 @@ private function setLexiPoint($email){
 }
 
 
-
-
-
-
 //     This function returns the name of the user sending the message using the ID of the Sender
 private function getSenderName($sender_id){
     return @$this->getMemberDetailsById($sender_id)["fullName"] ?? @$this->getAdminById($sender_id)['name'].' ( Admin )';
 }
+
+
+// This function gets the name of the admin woking on name
+private function getAdminNameWokingOnName($namesId){
+    $con          = self::con(); 
+    $query        = $con->query("SELECT * FROM `lexipoints` WHERE `namesId`='$namesId'");
+    if($query->num_rows>0){
+        $row = $query->fetch_assoc();
+        return $this->getAdminById($row['adminId'])['name'];
+    }else{
+        return "...";
+    }
+    $con->close();
+}
+
+
+
 
 /////////////////// GET ALL APPROVED NAMES -> For ADMINS///////////////////////////////
 public function getAllNames(){
@@ -1036,6 +1044,7 @@ public function getAllApprovedNames(){
                         $output.= '<td> No </td>';
                     } 
                        $output.='<td>'.$this->getLpByName($row['addedBy'],$row['namesId']).'</td>
+                                 <td>'.$this->getAdminNameWokingOnName($row['namesId']).'</td>
                                  <td>
                                  <a href="#" class="publishName btn btn-sm btn-primary" id ="'.$row['namesId'].'"><i class="fa fa-check mx-1" data-toggle="tooltip"></i> publish </a>
                                  <a href="#" class="viewName btn btn-sm btn-primary" id ="'.$row['namesId'].'" data-toggle="modal" data-target="#myModal2" ><i class="fa fa-eye mx-1" data-toggle="tooltip" title="View details"></i> view</a>          
@@ -1069,6 +1078,7 @@ public function getPublishedNames(){
                                  <td>'.$row['nameUsage'].'</td>
                                  <td>'.$row['origin'].'</td>
                                  <td> Yes </td> 
+                                 <td>'.$this->getAdminNameWokingOnName($row['namesId']).'</td>
                                  <td>
                                  <a href="#" class="viewName btn btn-sm btn-primary" id ="'.$row['namesId'].'" data-toggle="modal" data-target="#myModal2" ><i class="fa fa-eye mx-1" data-toggle="tooltip" title="View details"></i> view</a>          
                                  <a href="index.php?pg=editName&nId='.$row['namesId'].'" class="btn btn-sm btn-primary" id ="'.$row['namesId'].'"><i class="fa fa-pencil mx-1" data-toggle="tooltip"  title="Edit name"></i> Edit</a>
@@ -1173,6 +1183,7 @@ public function getWaitingNames(){
                                 <td>'.date("M, d Y",strtotime($row['date_created'])).'</td>
                                 <td>'.$row['status'].'</td> 
                                 <td>'.$this->getLpByName($row['addedBy'],$row['namesId']).'</td> 
+                                <td>'.$this->getAdminNameWokingOnName($row['namesId']).'</td> 
                                 <td>
                                 <a href="#" class="approveName btn btn-sm btn-primary" id ="'.$row['namesId'].'"><i class="fa fa-check mx-1" ></i> Approve </a>
                                 <a href="index.php?pg=editName&nId='.$row['namesId'].'" class="btn btn-sm btn-primary"  id ="'.$row['namesId'].'"><i class="fa fa-pencil mx-1" data-toggle="tooltip"  title="Edit this name"></i> Edit</a>
@@ -1303,6 +1314,38 @@ public function getTotalUsers(){
     $total = number_format($total,0,".",",");
     return $total;
 }
+
+
+
+
+// This returns the total Number of names completed by this ADMIN
+private function adminTotalCompletedNames($adminId){
+    $con          = self::con(); 
+    $query        = $con->query("SELECT * FROM `lexipoints` WHERE `adminId`='$adminId' AND `work_status`='completed'");
+    if($query->num_rows>0){
+        $rowCount = $query->num_rows;
+        return number_format($rowCount,0,".",",");
+    }else{
+        return 0;
+    }
+    $con->close();
+}
+
+
+
+// This returns the total Number of names completed by this ADMIN
+private function adminTotalInProgressNames($adminId){
+    $con          = self::con(); 
+    $query        = $con->query("SELECT * FROM `lexipoints` WHERE `adminId`='$adminId' AND `work_status`='in-progress'");
+    if($query->num_rows>0){
+        $rowCount = $query->num_rows;
+        return number_format($rowCount,0,".",",");
+    }else{
+        return 0;
+    }
+    $con->close();
+}
+
 
 // Assign Points to user who successfully 
 // private function setLexiPoint($uid,$pointValue = 0){

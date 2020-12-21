@@ -75,6 +75,7 @@
 				<th>Status</th>
 				<th>Published</th>
 				<th>&sum; LP </th>
+				<th>Assigned to </th>
 				<th>Actions</th>
 			</tr>
 		</thead>

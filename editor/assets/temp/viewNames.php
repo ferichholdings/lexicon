@@ -21,6 +21,7 @@
             <th>Status</th>
 			<th>Published</th>
 			<th>&sum; LP</th>
+			<th>Assigned to</th>
             <th>Action</th>
             </tr>
         </thead>
@@ -40,6 +41,7 @@
             <th>Usage</th>
             <th>Origin</th>
 			<th>Published</th>
+			<th>Assigned to</th>
             <th>Action</th>
             </tr>
         </thead>
