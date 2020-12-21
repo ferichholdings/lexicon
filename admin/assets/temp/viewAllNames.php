@@ -1,8 +1,7 @@
  
 
 <div class="col-md-12 ">
-<table id="example" class="table table-striped table-bordered nowrap" >
-
+<table id="allNames" class="table table-striped table-bordered nowrap" >
         <thead>
             <tr>
             <th>S/N</th>
@@ -23,13 +22,17 @@
 </div>
 
 <script>
+<script>
 $(document).ready(function() {
-    $('#example').DataTable( {
+    $('#allNames').DataTable( {
         "dom": '<"toolbar">frtip'
     } );
   
+	$('[data-toggle="popover"]').popover();
+
 } );
 
+</script>
 </script>
 
 

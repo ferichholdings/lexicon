@@ -25,9 +25,32 @@
     </table>
 </div>
 
+
+
+
+<div class="col-md-12 mx-n5">
+  <h4 class="form-group border-bottom">Published Names</h4>
+	<table id="published" class="table table-striped table-bordered nowrap" >
+        <thead>
+            <tr>
+            <th>S/N</th>
+            <th>Name</th>
+            <th>Pronunciation</th>
+            <th>Meaning</th>
+			<th>Status</th>
+			<th>&sum; LP</th>
+            <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php $user->getMyPublishedNames($_SESSION["NL_USER_LIVE"]); ?>     
+        </tbody> 
+    </table>
+</div>
+
 <script>
 $(document).ready(function() {
-    $('#example').DataTable( {
+    $('#example, #published').DataTable( {
         "dom": '<"toolbar">frtip'
     } );
   

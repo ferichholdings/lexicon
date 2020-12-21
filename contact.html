@@ -25,10 +25,11 @@
  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="css/style.css">
 	<link rel="shortcut icon" type="icon" href="img/favicon.ico">
-	<script src="js/jquery.min.js"></script>
+	<script src="https://code.jquery.com/jquery-3.5.1.min.js" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
 	<script src="js/popper.js"></script>
 	<script src="js/bootstrap.min.js"></script> 
 	<script src="js/main.js"></script> 
+	<script src="js/lexi.js"></script> 
  <style>
  .product_list div img{
    margin:2px;
@@ -53,6 +54,22 @@ margin-bottom: -5px;
 .contactPhone div p span{
 	font-size: 14px;
 	font-weight: 600;
+}
+
+.alert-success, .alert-danger {
+    padding:14px;
+	text-align: center;
+	border:0;
+	color:#fff;
+	font-weight: 600;
+}
+
+.alert-success{
+  background-color: rgba(60, 218, 144, 0.829);
+}
+
+.alert-danger {
+	background-color: rgba(189, 44, 44, 0.74);
 }
 
 .form_group input, .form_group textarea{
@@ -132,8 +149,8 @@ margin-bottom: -5px;
 								<div class="card" style ="border:1px solid #f3f3f3; width:33.33%">
 								   <div class="card-body">
 									<p class ="text-center mt-4 bg-light"> 
-										     <i class="fa fa-envelope"></i> &nbsp; info@nameslexicon.com, 
-										<br/><i class="fa fa-envelope"></i> &nbsp; support@nameslexicon.com
+										     <i class="fa fa-envelope"></i> &nbsp; <a href="mailto:info@nameslexicon.com">info@nameslexicon.com </a>
+										<br/><i class="fa fa-envelope"></i> &nbsp; <a href="mailto:support@nameslexicon.com">support@nameslexicon.com</a>
 									</p>
 									</div>
 								</div>
@@ -157,8 +174,8 @@ margin-bottom: -5px;
 						 
 
 				<!--  Send Contact Message -->
-		   <form class="card-deck" style ="border:1px solid #f3f3f3;"> 
-			   <div class ="result_contact"></div>
+		   <form class="card-deck" id ="contactForm" style ="border:1px solid #f3f3f3;"> 
+			   <div class ="result_contact"> </div>
 				<div id ="contactForm" class ="card" style="display: flex; justify-content: space-between;">
 
 					 <div class="card" style="width:55%;">  
@@ -173,16 +190,16 @@ margin-bottom: -5px;
 							</div>
 
 							<div class="form_group">
-								<label>subject</label>
+								<label>Subject</label>
 								<p> <input type="text" name="subject" id="subject" placeholder="Subject" required /></p>
 							</div>
-							
+							<input type="hidden" name="action" value ="contact">
 					</div>
 
 					<div class="card" style="width:45%;"> 
 						<div class="form_group">
 							<label>Message</label>
-							<p> <textarea style="height: 160px;">Type your message</textarea></p>
+							<p> <textarea style="height: 160px;" name ="message">Type your message</textarea></p>
 						</div>
 						<button type="submit" name ="sendMessage" id ="sendMessage"  
 						        style ="margin:4px; float:right;border:1px solid #fff; color:#fff !important; background-color:#2aa4eb; padding: 8px !important;" 
@@ -222,12 +239,12 @@ margin-bottom: -5px;
 				<p><a href="./about.html">Search history</a></p>
 				<p><a href="./about.html">Search help</a></p>
 				<p><a href="./how-search-works.html">How search works</a></p>
-				<p><a href="./about.html">Contact us</a></p>
+				<p><a href="./contact.html">Contact us</a></p>
 			</div>
 		</div>
 
 
-		<div class="footer" style="background-color:#fff !important; border-top:2px solid rgb(68, 207, 231);">
+		<div class="footer" style="background-color:#fff !important; border-top:2px solid rgb(68, 207, 231);position: relative !important;">
 			<div class="footer_left">
 				<ul> 
 					<li><a href="./about.html">How this search works</a></li>
@@ -235,8 +252,8 @@ margin-bottom: -5px;
 			</div>
 			<div class="footer_right">
 				<ul>
-					<li><a href="./about.html">Privacy</a></li>
-					<li><a href="./about.html">Terms</a></li>
+					<li><a href="./privacy.html">Privacy</a></li>
+					<li><a href="./terms.html">Terms</a></li>
 					<li><a href="#" class="settings">Settings</a></li>
 				</ul>				
 			</div>

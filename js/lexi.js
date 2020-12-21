@@ -47,4 +47,33 @@ $(document).ready(function(){
         });
     });
 
+    // Contact Us  
+    $(document).on('submit',"#contactForm", function(evt){
+        evt.preventDefault();
+        let data = $(this).serialize();
+        $.ajax({
+            url:lexiApi,
+            method:"post",
+            data:data,
+            beforeSend:()=>{
+                $(".result_contact").html(`<div class ="alert"> <i class ="fa fa-spinner fa-spin"></i> </div>`);
+            },
+            success: (res)=>{
+                if(res==1){ 
+                    $(".result_contact").html(`<div class ="alert-success"> Thanks for contacting us. We will get back to you in a hort while.</div>`);
+                     setTimeout(() => { 
+                        $(".result_contact").slideUp(3000); 
+                        location.reload();
+                    }, 3000);
+                    
+                }else{
+                    $(".result_contact").html(`<div class ="alert-danger">${res}</div>`);
+                }
+            }
+        });
+    });
+
+
+
+
 });

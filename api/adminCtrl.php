@@ -68,9 +68,13 @@ class Admin extends Database{
         break; 
 
         case 'flagName':
-            self::flagNameWaiting();   
+            self::flagNameWaiting($_SESSION["NL_ADMIN_USER_LIVE"]);   
         break; 
-        
+
+        case 'completed':
+            self::workOnNameCompleted($_SESSION["NL_ADMIN_USER_LIVE"]);   
+        break; 
+
         case 'delName':
             self::deleteName($_SESSION["NL_ADMIN_USER_LIVE"]);        // Delete this name  viewNameDetails
         break; 
@@ -575,13 +579,21 @@ private function publishName(){
 
 /////////////////////////////////////////// PUblish Name </end> ///////////////////////////////////////////////
 
-//////////////////////////////////// PUBLISH NAME -- only super-Admin can do this //////////////////////////////////////
-private function flagNameWaiting(){
-    $con    = self::con(); 
-    $nameId = $_POST['nId'];
-    $memId  = $_POST['memId'];
-    $query  = $con->query("UPDATE `names` SET `status`='waiting' WHERE `namesId` ='$nameId' AND `addedBy`='$memId' LIMIT 1");
-    if($query){
+//////////////////////////////////// Flag name as waiting //////////////////////////////////////
+private function flagNameWaiting($email){
+    $con        = self::con(); 
+    $nameId     = $_POST['nId'];
+    $memId      = $_POST['memId'];
+    $adminId    = $this->getAdminByEmail($email)['adminId'];
+    $query      = $con->query("UPDATE `names` SET `status`='waiting' WHERE `namesId` ='$nameId' AND `addedBy`='$memId' LIMIT 1");
+    $sql        ="";
+    if($this->isNamePresent($memId,$nameId)){
+        $sql .= "UPDATE `lexipoints` SET `adminId`='$adminId' WHERE `memId`='$memId' AND `namesId`='$nameId'";
+    }else{
+        $sql .= "INSERT INTO `lexipoints`(`memId`,`namesId`,`adminId`) VALUES('$memId','$nameId','$adminId')";
+    }
+    $query2 = $con->query($sql);
+    if($query && $query2){
         echo true;
     }else{
         echo "Error ! ".$con->error;
@@ -589,8 +601,41 @@ private function flagNameWaiting(){
      $con->close();
 }
 
-/////////////////////////////////////////// PUblish Name </end> ///////////////////////////////////////////////
 
+private function isNamePresent($memId,$nameId){
+    $con        = self::con(); 
+    $query      = $con->query("SELECT * FROM `lexipoints` WHERE `namesId` ='$nameId' AND `memId`='$memId'");
+    if($query->num_rows>0){
+        return true;
+    }else{
+        return false;
+    }
+}
+/////////////////////////////////////////// Name waiting </end> ///////////////////////////////////////////////
+
+
+//////////////////////////////  COMPLETED WORKING ON A NAME  /////////////////////////////////////
+// this function markes names completed if an admin has completed workig on a name
+private function workOnNameCompleted($email){
+    $con = self::con(); 
+    $nameId     = $_POST['nId'];
+    $memId      = $_POST['memId'];
+    if($this->isNamePresent($memId,$nameId)){
+        $adminId    = $this->getAdminByEmail($email)['adminId'];
+        $sql        = "UPDATE `lexipoints` SET `work_status`='completed',`updated`= NOW() WHERE `memId`='$memId' AND `namesId`='$nameId' AND `adminId`='$adminId'";
+        $query = $con->query($sql);
+        if($query){
+            echo true;
+        }else{
+            echo "Error ! ".$con->error;
+          }
+         $con->close();
+    }else{
+        echo "You have NOT worked/started working or on this name.";
+    }
+
+}
+//////////////////////////////////  COMPLETED WORKING ON NAME <END/>
 
 
 
@@ -652,16 +697,25 @@ private function deleteName($email){
 //////////////// DELETE NAME ADDED BY THIS ADMIN  </end> //////////////////
 
 
+// Use this to Check the points against names part
+public function isPointGiven($nameId){
+    $con   = self::con();  
+    $query = $con->query("SELECT * FROM `lexipoints` WHERE `namesId`='$nameId'");
+    $row   =  $query->fetch_assoc();
+    return $row;
+}
+
 
 private function viewNameDetails(){
-    $con          = self::con(); 
-    //$uid          = $this->getMemberDetails($email)['memId'];
-    $nameId       = $this->clean_input($_POST['namesId']);
-    $query        = $con->query("SELECT * FROM `names` WHERE `namesId` ='$nameId'");
+    $con    = self::con(); 
+    //$uid  = $this->getMemberDetails($email)['memId'];
+    $nameId = $this->clean_input($_POST['namesId']);
+    $query  = $con->query("SELECT * FROM `names` WHERE `namesId` ='$nameId'");
+    $output = "";
     if($query){      
         if($query->num_rows>0){
             $row  = $query->fetch_assoc();
-            echo '<div class ="border p-2">
+            $output.='<div class ="border p-2">
                         <button class ="btn btn-primary btn-sm flagNameWaiting" id ="'.$row['namesId'].'" data-id ="'.$row['addedBy'].'"><span>Flag as waiting &nbsp; </span></button>
                         <i class ="fa fa-info-circle" data-toggle="popover" data-trigger="hover" title="Add this name to waiting list so you can finish correction before approving it" 
                             data-placement="top"
@@ -669,81 +723,101 @@ private function viewNameDetails(){
                         <span> Total Lexi Points so far : <i class ="lexiPointOutput"></i> </span>
                         <button class ="float-right btn btn-primary btn-sm approveAll" id ="'.$row['namesId'].'" data-id ="'.$row['addedBy'].'" name ="all"><span>Award all points</span></button>              
                     </div>
-                <p class ="result_name"></p>
-                 <div>
-                    <h6 class ="h5 border-bottom" >Name [1 LP] <span class="float-right"> 
-                        <i class="fa fa-check btn-sm approveLexipoint" style="background-color:#ccc;" data-lxpoint="1" id ="'.$row['namesId'].'" data-id ="'.$row['addedBy'].'" name ="name" style="width:30px; cursor:pointer;"></i> 
-                        </span>
-                    </h6>
-                    <p> '.$row['name'].' </p>
-                </div>  
-                
-                <div>
+                <p class ="result_name"></p>';
+
+             if(@$this->isPointGiven($row['namesId'])['name']==0){
+                 $output.='<div>
+                        <h6 class ="h5 border-bottom" >Name [1 LP] <span class="float-right"> 
+                         <i class="fa fa-check btn-sm approveLexipoint" style="background-color:#ccc;" data-lxpoint="1" id ="'.$row['namesId'].'" data-id ="'.$row['addedBy'].'" name ="name" style="width:30px; cursor:pointer;"></i> 
+                            </span>
+                        </h6>
+                        <p> '.$row['name'].' </p>
+                    </div>';
+
+             }       
+             if(@$this->isPointGiven($row['namesId'])['otherForms']==0){                    
+                $output.='<div>
                     <h6 class ="h5 border-bottom" >Other forms [1 LP] <span class="float-right"> 
                     <i class="fa fa-check btn-sm approveLexipoint" style="background-color:#ccc;" data-lxpoint="1" id ="'.$row['namesId'].'" data-id ="'.$row['addedBy'].'" name ="otherForms" style="width:30px; cursor:pointer;"></i> 
                     </span>
                     </h6>
                     <p> '.$row['otherForms'].' </p>
-                 </div>
+                 </div>';
+             }
 
-                 <div>
+             if(@$this->isPointGiven($row['namesId'])['n_usage']==0){
+                $output.='<div>
                     <h6 class ="h5 border-bottom" > Usage  [0.5 LP] <span class="float-right"> 
                     <i class="fa fa-check btn-sm approveLexipoint" style="background-color:#ccc;" data-lxpoint="0.5" id ="'.$row['namesId'].'" data-id ="'.$row['addedBy'].'" name ="usage" style="width:30px; cursor:pointer;"></i>
                     </span>
                     </h6>
                     <p> '.$row['nameUsage'].' </p>
-                </div>
-
-                  <div>
+                </div>';
+             }
+              
+             if(@$this->isPointGiven($row['namesId'])['gender']==0){
+                $output.='<div>
                         <h6 class ="h5 border-bottom" > Gender [0.5 LP] <span class="float-right"> 
                         <i class="fa fa-check btn-sm approveLexipoint" style="background-color:#ccc;" data-lxpoint="0.5" id ="'.$row['namesId'].'" data-id ="'.$row['addedBy'].'" name ="gender" style="width:30px; cursor:pointer;"></i> 
                         </span>
                         </h6>
                         <p> '.$row['gender'].'  </p>
-                 </div>
-
-                 <div>
+                 </div>';
+             }
+                
+             if(@$this->isPointGiven($row['namesId'])['origin']==0){
+                $output.='<div>
                         <h6 class ="h5 border-bottom" > Origin [1 LP] <span class="float-right"> 
                         <i class="fa fa-check btn-sm approveLexipoint" style="background-color:#ccc;" data-lxpoint="1" id ="'.$row['namesId'].'" data-id ="'.$row['addedBy'].'" name ="origin" style="width:30px; cursor:pointer;"></i> 
                         </span>
                         </h6>
                         <p> '.$row['origin'].'  </p>
-                 </div>
-                   
-                 <div>
+                 </div>';
+             }   
+              
+             if(@$this->isPointGiven($row['namesId'])['pronounce']==0){
+                $output.='<div>
                     <h6 class ="h5 border-bottom" > Pronunciation [1 LP] <span class="float-right"> 
                         <i class="fa fa-check btn-sm approveLexipoint" style="background-color:#ccc;" data-lxpoint="1" id ="'.$row['namesId'].'" data-id ="'.$row['addedBy'].'" name ="pronounce" style="width:30px; cursor:pointer;"></i> 
                         </span>
                     </h6>
                     <p> '.$row['pronounce'].'  </p>
-                </div>
+                </div>';
+             }
 
-
-                <div>
+             if(@$this->isPointGiven($row['namesId'])['meaning']==0){
+                $output.='<div>
                     <h6 class ="h5 border-bottom" >Meaning [1 LP] <span class="float-right"> 
                     <i class="fa fa-check btn-sm approveLexipoint" style="background-color:#ccc;" data-lxpoint="1" id ="'.$row['namesId'].'" data-id ="'.$row['addedBy'].'" name ="meaning" style="width:30px; cursor:pointer;"></i> 
                     </span>
                     </h6>
                     <p> '.$row['meaning'].' </p>
-                </div>
-
-                <div>
+                </div>';
+             }
+              
+            if(@$this->isPointGiven($row['namesId'])['history']==0){
+                $output.='<div>
                     <h6 class ="h5 border-bottom" >History [1 LP] 
                     <span class="float-right"> 
                         <i class="fa fa-check btn-sm approveLexipoint" style="background-color:#ccc;" data-lxpoint="1" id ="'.$row['namesId'].'" data-id ="'.$row['addedBy'].'" name ="history" style="width:30px; cursor:pointer;"></i> 
                     </span>
                     </h6>
                     <p> '.$row['history'].' </p>
-                </div>
+                </div>';
+            }    
                 
-                <div>
-
+            $output.='<div>
                     <h6 class ="h5" >Personality Trait </h6>
                     <p> '.$row['personality'].' </p>
-               </div>';
-                
+
+                    <div class ="border p-2">
+                        If you have finished working on this name please click <b>*Completed*</b>
+                        <button class ="float-right btn btn-primary btn-sm nameCompleted" id ="'.$row['namesId'].'" data-id ="'.$row['addedBy'].'""><span>Completed</span></button>              
+                  </div>
+               </div>';  
         }
     }
+    echo $output;
 }
 
 
@@ -752,18 +826,17 @@ private function setLexiPoint($email){
     // `lexp_id`, `memId`, `namesId`, `name`, `gender`, `n_usage`, `origin`, `history`, `meaning`, `pronounce`, `otherForms`, `updatedAt`
     $con          = self::con(); 
     $namesPart    = $_POST['npart'];   // part of the name information 
-    $memId        = $_POST['memId'];    
-    $namesId      = $_POST['namesId']; 
+    $memId        = $_POST['memId'];   // ID of the user who added the the name
+    $namesId      = $_POST['namesId']; // ID of this Name form names table
     $query        = $con->query("SELECT * FROM `lexipoints` WHERE `namesId`='$namesId' AND `memId` ='$memId'");   
     $sql=""; 
     if($query){
-        if($query->num_rows>0){
+        if($query->num_rows>0){  // check if name record already exist on the table of Lexi points
             switch($namesPart){
                case 'name':        
                 $sql.="UPDATE `lexipoints` SET `name`=1 ,`updatedAt`=NOW() WHERE `namesId`='$namesId' AND `memId` ='$memId' LIMIT 1"; 
                     $noty  = new Notification($memId, "Lexi points ~ CR-1", "Congratulations! You have earned 1 lexipoint for adding new name");
-                    $noty->notifyMe(); 
-                //$this->approveName($email,$nameId);  
+                    $noty->notifyMe();  
                break;
 
                case 'gender':     
@@ -832,8 +905,7 @@ private function setLexiPoint($email){
                 case 'name':      
                  $sql.="INSERT INTO `lexipoints`(`memId`,`namesId`,`name`,`updatedAt`) VALUES('$memId','$namesId',1,NOW())"; 
                      $noty  = new Notification($memId, "Lexi points ~ CR-1", "Congratulations! You have earned 1 lexipoint for adding new name");
-                     $noty->notifyMe();
-                 //$this->approveName($email,$nameId);  
+                     $noty->notifyMe();  
                 break;
  
                 case 'gender':    
@@ -906,7 +978,7 @@ private function setLexiPoint($email){
 
 //     This function returns the name of the user sending the message using the ID of the Sender
 private function getSenderName($sender_id){
-    return @$this->getMemberDetailsById($sender_id)["fullName"].'(user)' ?? @$this->getAdminById($sender_id)['name'].' ( Admin )';
+    return @$this->getMemberDetailsById($sender_id)["fullName"] ?? @$this->getAdminById($sender_id)['name'].' ( Admin )';
 }
 
 /////////////////// GET ALL APPROVED NAMES -> For ADMINS///////////////////////////////
@@ -927,8 +999,8 @@ public function getAllNames(){
                                 <td>'.$row['status'].'</td> 
                                 <td>'.$this->getLpByName($row['addedBy'],$row['namesId']).'</td> 
                                 <td>
-                                <a href="#" class="deleteName btn btn-sm btn-primary" id ="'.$row['namesId'].'"><i class="fa fa-trash mx-1" data-toggle="tooltip"  title="Delete this name"></i> &nbsp;Delete</a>
-                                <a href="index.php?pg=editName&nId='.$row['namesId'].'" class="btn btn-sm btn-primary" id ="'.$row['namesId'].'"><i class="fa fa-pencil mx-1" data-toggle="tooltip"  title="Edit this name"></i> &nbsp; Edit</a>
+                                <!--<a href="#" class="deleteName btn btn-sm btn-primary" id ="'.$row['namesId'].'"><i class="fa fa-trash mx-1" data-toggle="tooltip"  title="Delete this name"></i> &nbsp;Delete</a>-->
+                                <!--<a href="index.php?pg=editName&nId='.$row['namesId'].'" class="btn btn-sm btn-primary" id ="'.$row['namesId'].'"><i class="fa fa-pencil mx-1" data-toggle="tooltip"  title="Edit this name"></i> &nbsp; Edit</a>-->
                                 <a href="#" class="viewName btn btn-sm btn-primary" id ="'.$row['namesId'].'" data-toggle="modal" data-target="#myModal2" ><i class="fa fa-eye mx-1" data-toggle="tooltip" title="View details"></i> &nbsp; View</a>          
                                 <a href="#modal_aside_right_1" class="sendMsg btn btn-primary btn-sm  mx-2" data-ab = "'.$this->getSenderName($row['addedBy']).'" id ="'.$row['addedBy'].'" data-toggle="modal"><i class="fa fa-send mr-1" data-toggle="tooltip" title="Send message to this user"></i> &nbsp;Message user</a>
                                 </td>
@@ -1030,9 +1102,9 @@ public function getMyNames($email){
                                  <td>'.$row['status'].'</td> 
                                  <td>'.$this->getLpByName($row['addedBy'],$row['namesId']).'</td>
                                  <td>
-                                 <a href="#" class="deleteName btn btn-sm btn-primary" id ="'.$row['namesId'].'"><i class="fa fa-trash mx-1" data-toggle="tooltip"  title="Delete this name"></i></a>
-                                 <a href="index.php?pg=editName&nId='.$row['namesId'].'" class="btn btn-sm btn-primary" id ="'.$row['namesId'].'"><i class="fa fa-pencil mx-1" data-toggle="tooltip"  title="Edit this name"></i></a>
-                                 <a href="#" class="viewName btn btn-sm btn-primary" id ="'.$row['namesId'].'" data-toggle="modal" data-target="#myModal2" ><i class="fa fa-eye mx-1" data-toggle="tooltip" title="View details"></i></a>          
+                                 <!--<a href="#" class="deleteName btn btn-sm btn-primary" id ="'.$row['namesId'].'"><i class="fa fa-trash mx-1" data-toggle="tooltip"  title="Delete this name"></i></a>-->
+                                 <a href="index.php?pg=editName&nId='.$row['namesId'].'" class="btn btn-sm btn-primary" id ="'.$row['namesId'].'"><i class="fa fa-pencil mx-1" data-toggle="tooltip"  title="Edit this name"></i> Edit </a>
+                                 <a href="#" class="viewName btn btn-sm btn-primary" id ="'.$row['namesId'].'" data-toggle="modal" data-target="#myModal2" ><i class="fa fa-eye mx-1" data-toggle="tooltip" title="View details"></i> View</a>          
                                  </td>
                              </tr>  ';
                      }
@@ -1066,8 +1138,8 @@ public function getNewlyAddedNames(){
                                  <td>'.$row['status'].'</td> 
                                  <!--<td>'.$this->getLpByName($row['addedBy'],$row['namesId']).'</td>-->
                                  <td>
-                                 <a href="#" class="approveName btn btn-sm btn-primary" id ="'.$row['namesId'].'"  data-toggle="modal" data-target="#modal_aside_right_2"><i class="fa fa-check mx-1" ></i> Approve</a>
-                                 <a href="#" class="deleteName btn btn-sm btn-primary"  id ="'.$row['namesId'].'"><i class="fa fa-trash mx-1" data-toggle="tooltip"  title="Delete this name"></i> Delete</a>
+                                 <!--<a href="#" class="approveName btn btn-sm btn-primary" id ="'.$row['namesId'].'"  data-toggle="modal" data-target="#modal_aside_right_2"><i class="fa fa-check mx-1" ></i> Approve</a>-->
+                                 <!-- <a href="#" class="deleteName btn btn-sm btn-primary"  id ="'.$row['namesId'].'"><i class="fa fa-trash mx-1" data-toggle="tooltip"  title="Delete this name"></i> Delete</a>-->
                                  <a href="#myModal2" class="viewName btn btn-sm btn-primary" id ="'.$row['namesId'].'" data-toggle="modal" data-target="#myModal2"><i class="fa fa-eye mx-1" data-toggle="tooltip" title="View details"></i> View </a>          
                                  </td>
                              </tr>  ';
@@ -1119,6 +1191,7 @@ public function getWaitingNames(){
 
 
 
+
 /////////////////// NAMES search ///////////////////////////////
 public function nameSearch($name){
     $nm  =  $this->clean_input($name);
@@ -1136,15 +1209,15 @@ public function nameSearch($name){
                             <div class="pt-4 border-bottom">
                                 <a class="d-block h4" data-toggle="collapse" href="#details_'.$row['namesId'].'" role="button" aria-expanded="false" aria-controls="details_'.$row['namesId'].'">'.$name.'</a>
                                 <a class="page-url text-primary" data-toggle="collapse" href="#details_'.$row['namesId'].'" role="button" aria-expanded="false" aria-controls="details_'.$row['namesId'].'">View Details </a>
-                                <p class="page-description mt-1 w-75 text-muted"> History: '.$row['history'].' </p>
+                                <p class="page-description mt-1 w-75 text-muted"> <h6 class="h5">Meaning: </h5> '. htmlentities($row['meaning']).'</p>
                             
                                 <div class="collapse multi-collapse" id="details_'.$row['namesId'].'">
-                                    <div class="page-description text-muted"> <h6>Meaning       </h6> '.htmlentities($row['meaning']).'     </div>
-                                    <div class="page-description text-muted"> <h6>Personality   </h6> '.$row['personality'].' </div>
-                                    <div class="page-description text-muted"> <h6>Pronunciation </h6> '.$row['pronounce'].'   </div>
-                                    <div class="page-description text-muted"> <h6>Origin        </h6> '.$row['origin'].'      </div>
-                                    <div class="page-description text-muted"> <h6>Usage         </h6> '.$row['nameUsage'].'   </div>
-                                    <div class="page-description text-muted"> <h6>Other Forms   </h6> '.$row['otherForms'].'  </div>
+                                    <div class="page-description text-muted mb-2"> <h6 class="h5">Other Forms   </h5> '.$row['otherForms'].'  </div>
+                                    <div class="page-description text-muted mb-2"> <h6 class="h5">Pronunciation </h5> '.$row['pronounce'].'  </div>
+                                    <div class="page-description text-muted mb-2"> <h6 class="h5">Origin        </h5> '.$row['origin'].'      </div>
+                                    <div class="page-description text-muted mb-2"> <h6 class="h5">Usage         </h5> '.$row['nameUsage'].'   </div>
+                                    <div class="page-description text-muted mb-2"> <h6 class="h5">History       </h5> '.$row['history'].'   </div>
+                                    <div class="page-description text-muted mb-2"> <h6 class="h5">Personality   </h5> '.$row['personality'].' </div>
                                 </div>
                                 
                             </div>
@@ -1319,3 +1392,4 @@ public function checkUserExist($con,$email,$table,$email_field){
 //  echo $admin->getLpByName(105,94);
 //  echo '<br/>';
 //  echo $admin->getSumOfLexiPoints(105);
+// $admin->isPointGiven(94);

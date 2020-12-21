@@ -12,6 +12,7 @@
             <th>Other forms</th>
             <th>Gender</th>
             <th>Status</th>
+			<th>&sum; LP</th>
             <th>Action</th>
             </tr>
         </thead>

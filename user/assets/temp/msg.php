@@ -1,34 +1,23 @@
-<!-- <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
-<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
-<script src="//code.jquery.com/jquery-1.11.1.min.js"></script> -->
-<!------ Include the above in your HEAD tag ---------->
 
+<p class ="col-md-12 my-4">
+     <a href="#m" class="btn btn-primary btn-sm sendMsg" data-toggle="modal" data-target="#modal_aside_right_1"><i class="fa fa-send"></i> Message Admin </a>
+</p>
 <div class="row">
-
-  <div class="col-md-10">
+  <div class="col-md-12 my-4">
       <h5 class="border-bottom">My Messages </h5>  
       <?php  $msg->getUserInbox($user->getMemberDetails($_SESSION["NL_USER_LIVE"])['memId']); ?>
       <?php  //$msg->getuserOutBox($user->getMemberDetails($_SESSION["NL_USER_LIVE"])['memId']); ?>		 
   </div>
 
-  <div class ="col-md-2">
-    <a href="#m" class="btn btn-primary btn-sm float-right sendMsg" data-toggle="modal" data-target="#modal_aside_right_1"><i class="fa fa-send"></i> Message Admin </a>
-  </div>
 	<!---  End of the first column -=Received messages -->
 	
 	 <!-- Outbox Begins -->
-	<div class="col-md-12">
+	<!-- <div class="col-md-6">
       <h5 class="border-bottom"> Outbox </h5> 
-      <?php  $msg->getuserOutBox($user->getMemberDetails($_SESSION["NL_USER_LIVE"])['memId']); ?>		 
-	</div>
-
-
+      <?php  //$msg->getuserOutBox($user->getMemberDetails($_SESSION["NL_USER_LIVE"])['memId']); ?>		 
+	</div> -->
 
 </div>
-
-
-
-
 
  <!-- ============================ SIDE MODAL ================================= -->  
  <style>
@@ -62,8 +51,8 @@
 							<textarea class="form-control" style="height:150px !important;" id="msg" name ="msg" placeholder="Type your message" required></textarea>
 						</div>
 						<div class="result_msg"></div> 
-						<input type="hidden" name="senderId"  value ="<?php echo $user->getMemberDetails($_SESSION["NL_USER_LIVE"])['memId']; ?>" />
-						<input type="hidden" name="action"    value ="sendMsg" />
+						<input type="hidden" name="senderId"   value ="<?php echo $user->getMemberDetails($_SESSION["NL_USER_LIVE"])['memId']; ?>" />
+						<input type="hidden" name="action"     value ="sendMsg" />
             <input type="hidden" name="receiverId" value ="<?php echo $user->getAdminId(); ?>" /> 
 						<div class="form-group"><button type="submit" class="btn btn-primary">Send <i class ="fa fa-send"></i></button></div>
 				</form>
@@ -80,14 +69,14 @@
   <div class="modal-dialog modal-dialog-aside" role="document">
     <div class="modal-content">
       <div class="modal-header">
-		<h6 class="modal-title">Replying to <small id="nameHelp" class="form-text text-muted"> Receiver's name </small></h6>
+		<h6 class="modal-title">Replying to <small id="nameHelp2" class="form-text text-muted"> <i class ="fa fa-spinner fa-spin"></i></small></h6>
 		
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
 		<div class="modal-body">
-				<form id ="sendMessageForm">
+				<form id ="sendMessageFormReply">
 						<!-- <div class="form-group">
 							<label for="msgTitle">Message Title</label>
 							<input type="text" class="form-control" id="msgTitle"  name ="msgTitle" placeholder="Message title" required />
@@ -98,7 +87,7 @@
 						</div>
 						<div class="result_msg"></div> 
 						<input type="hidden" name="senderId"   value ="<?php echo $user->getMemberDetails($_SESSION["NL_USER_LIVE"])['memId']; ?>">
-						<input type="hidden" name="action"     value ="sendMsg">
+						<input type="hidden" name="action"     value ="replyMsg">
             <input type="hidden" name="receiverId" id ="rcv_ID" value ="">
             <input type="hidden" name="msgId"      id ="msg_ID" value ="">
 						<div class="form-group"><button type="submit" class="btn btn-primary">Send <i class ="fa fa-send"></i></button></div>
@@ -113,27 +102,26 @@
  $(document).ready(function(){
     let lexiApi = "http://localhost/lexicon/api/userCtrl.php";
 
-     $(document).on('click', ".list-group-item", function(evt){
-        evt.preventDefault();
-        $(".list-group-item").removeClass("active");
-        $(this).toggleClass("active");
-        let msgId = $(this).attr('id');
-        // Name of the user/Admin who is to receive the message  
-        let replyingTo      = $(this).find(".list-group-item-heading").attr('data-id');          // Name of the user replying to
-        let userMsgSenderId = $(this).find(".list-group-item-heading").attr('data-msg-sender'); // id of the user who sent this message that I am replying
-         $("#nameHelp").html(replyingTo);  // Set the name of the user on the field in the side modal
-         $("#rcv_ID").val(userMsgSenderId);  // Set the value in the hidden field found in the side modal
-         
-          $.ajax({
-              url:lexiApi,
-              method:"post",
-              data:{action:'msgdetails',msgId:msgId},
-              success:(res)=>{
-                  $(".messageDetails").html(res);
-              }
-          });
+    //  $(document).on('click', ".list-group-item", function(evt){
+    //     evt.preventDefault();
+    //     $(".list-group-item").removeClass("active");
+    //     $(this).toggleClass("active");
+    //     let msgId = $(this).attr('id');
+    //     // Name of the user/Admin who is to receive the message  
+    //     let replyingTo      = $(this).find(".list-group-item-heading").attr('data-id');          // Name of the user replying to
+    //     let userMsgSenderId = $(this).find(".list-group-item-heading").attr('data-msg-sender'); // id of the user who sent this message that I am replying
+    //      $("#nameHelp").html(replyingTo);  // Set the name of the user on the field in the side modal
+    //      $("#rcv_ID").val(userMsgSenderId);  // Set the value in the hidden field found in the side modal      
+    //       $.ajax({
+    //           url:lexiApi,
+    //           method:"post",
+    //           data:{action:'msgdetails',msgId:msgId},
+    //           success:(res)=>{
+    //               $(".messageDetails").html(res);
+    //           }
+    //       });
 
-     });
+    //  });
 
 
 //  Replying message
@@ -143,11 +131,11 @@ $(document).on('click', ".replyMsg", function(evt){
         let username   = $(this).attr('data-name');
         let SenderId   = $(this).attr('data-id');
         $("#msg_ID").val(msgId);
-        $("#nameHelp").html(username);
+        $("#nameHelp2").html(username);
         $("#rcv_ID").val(SenderId);    // Set the value in the hidden field found in the side modal
-        $(document).on("submit","#sendMessageForm", function(evt){
+        $(document).on("submit","#sendMessageFormReply", function(evt){
             evt.preventDefault();
-            let data = $("#sendMessageForm").serialize();
+            let data = $("#sendMessageFormReply").serialize();
             $(".result_msg").html('<i class="fa fa-spinner fa-spin fa-3x"></i> Sending...');
             $.ajax({
                 url:lexiApi,
@@ -156,7 +144,7 @@ $(document).on('click', ".replyMsg", function(evt){
                 success: (res)=>{
                     if(res==1){
                         $(".result_msg").html('<p class ="alert alert-success"> Message Sent! </p>');
-                        setTimeout(function(){ $(".result_msg").slideUp(2000); $("#sendMessageForm").trigger('reset'); },1000);
+                        setTimeout(function(){ $(".result_msg").slideUp(2000); $("#sendMessageFormReply").trigger('reset'); location.reload();},1000);
                     }else{
                         $(".result_msg").html('<p class ="alert alert-danger">'+res+'</p>');
                     }

@@ -192,7 +192,7 @@
 
 
 <!--  ////////// Approving Name Modal///////////// -->
-<div id="modal_aside_right_2" class="modal fixed-left fade" tabindex="-1" role="dialog">
+<!-- <div id="modal_aside_right_2" class="modal fixed-left fade" tabindex="-1" role="dialog">
   <div class="modal-dialog modal-dialog-aside_2" role="document">
     <div class="modal-content">
       <div class="modal-header">
@@ -217,8 +217,10 @@
 		</div>
        <div class="modal-footer">... </div>
     </div>
-  </div> <!-- modal-bialog .// -->
-</div> <!-- modal.// -->
+  </div> -->
+   <!-- modal-bialog .// -->
+<!-- </div>  -->
+<!-- modal.// -->
 
 
 <script>

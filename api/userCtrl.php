@@ -55,6 +55,10 @@ class User extends Database{
             self::editName($_SESSION["NL_USER_LIVE"]); 
         break; 
         
+        case 'contact':
+            self::contactUs(); 
+        break; 
+        
         case 'sendMsg': 
             $msg        = new Message($_POST['senderId'], $_POST['receiverId'], null, $_POST['msgTitle'], $_POST['msg']);
             if($_POST['senderId']===$_POST['receiverId']){
@@ -69,8 +73,8 @@ class User extends Database{
         break; 
 
         case 'replyMsg':
-            $msg = new Message($_POST['senderId'], $_POST['receiverId'], $_POST['msgId'], $_POST['msgTitle'], $_POST['msg']); 
-            if($_POST['senderId']=== $_POST['receiverId']){
+            $msg = new Message($_POST['senderId'], $_POST['receiverId'], $_POST['msgId'], null, $_POST['msg']); 
+            if($_POST['senderId']===$_POST['receiverId']){
                 die("Sorry you cannot reply your own message");
             }else{
                 if($msg->sendMessage()){
@@ -93,7 +97,10 @@ class User extends Database{
        $query        = $con->query("SELECT * FROM `admins`");
        $a            = array(); 
        while($row = $query->fetch_assoc()){  array_push($a,$row['adminId']);  }
-       return $a[array_rand($a)];
+
+       if (in_array(1, $a)){ unset($a[array_search(1,$a)]);}  // exclude Super admin from the list ID of THE SUPPER ADMIN = 1
+
+       return $a[array_rand($a)];     // Choose only one admin
    }
  
 
@@ -157,6 +164,24 @@ class User extends Database{
     }
    }
    
+public function contactUs(){
+    // `conId`, `name`, `email`, `subject`, `message`, `createdAt`
+    $con        = self::con();
+    $name       = $this->clean_input($_POST['name']);
+    $email      = $this->clean_input($_POST['email']);
+    $subject    = $this->clean_input($_POST['subject']);
+    $msg        = $this->clean_input($_POST['message']);
+    $sql        = "INSERT INTO `contact`(`name`, `email`, `subject`, `message`, `createdAt`) VALUES(?,?,?,?,NOW())";
+    $stmt       = $con->prepare($sql);
+    $stmt->bind_param("ssss",$name,$email,$subject,$msg);
+    if($stmt->execute()){
+       echo true;
+    }else{
+       echo "Error Sending message ".$con->error;
+    }
+}
+
+
    // Return User Details as Associative array
    public function getMemberDetails($email){
         $con        = self::con();
@@ -319,6 +344,19 @@ private function isNameExist($name){
  }
 
 
+private function isNameApproved($name){
+    $con      = self::con(); 
+    $query    = $con->query("SELECT * FROM `names` WHERE `status`='approved'");
+    if($query){
+        if($query->num_rows>0){
+            return true;
+        }else{
+            return false;
+        }
+    }
+}
+
+
  public function editName($email){
     // `namesId`,`name`,`otherForms`,`nameUsage`,`gender`,`origin`,`pronounce`,`meaning`,`history`,`personality`,`addedBy`,`status`,`date_created`, `date_updated`
     $con          = self::con(); 
@@ -327,11 +365,15 @@ private function isNameExist($name){
     $Name         = $this->clean_input($_POST['Name']);
     $otherForms   = $this->clean_input($_POST['otherForms']);
     $nameUsage    = $this->clean_input($_POST['nameUsage']);
-    @$gender       = $this->clean_input($_POST['gender']);
+    @$gender      = $this->clean_input($_POST['gender']);
     $origin       = $this->clean_input($_POST['origin']); 
     $pronounce    = $this->clean_input($_POST['pronounce']);  
     $history      = $this->clean_input($_POST['history']); 
     $meaning      = $this->clean_input($_POST['meaning']);
+    
+    if($this->isNameApproved($Name)){
+        die("Sorry you cannot edit this name anymore.");
+    }
     if(!isset($gender) || empty($gender)){
         echo "Gender is not selected";
         exit();
@@ -345,6 +387,9 @@ private function isNameExist($name){
      }
     $con->close();
 }
+
+
+
 
 
 private function viewNameDetails($email){
@@ -435,7 +480,7 @@ public function getMyNames($email){
 //<a href="#" class="deleteName btn btn-sm btn-primary" id ="'.$row['namesId'].'"><i class="fa fa-trash mx-1" data-toggle="tooltip"  title="Delete this name"></i></a>                             
    $memId   = $this->getMemberDetails($email)['memId'];
    $con        = self::con(); 
-   $query      = $con->query("SELECT * FROM `names` WHERE `addedBy` ='$memId'");
+   $query      = $con->query("SELECT * FROM `names` WHERE `addedBy` ='$memId' AND `published`='0' ORDER BY `date_created` DESC");
    if($query){
         if($query->num_rows>0){
               $i = 0;
@@ -448,7 +493,7 @@ public function getMyNames($email){
                                 <td>'.$row['status'].'</td> 
                                 <td>'.$this->getLpByName($memId,$row['namesId']).'</td> 
                                 <td>
-                                <a href="index.php?pg=editName&nId='.$row['namesId'].'" class=" btn btn-sm btn-primary" id ="'.$row['namesId'].'"><i class="fa fa-pencil mx-1" data-toggle="tooltip"  title="Edit this name"></i> Edit </a>
+                                <!--<a href="index.php?pg=editName&nId='.$row['namesId'].'" class=" btn btn-sm btn-primary" id ="'.$row['namesId'].'"><i class="fa fa-pencil mx-1" data-toggle="tooltip"  title="Edit this name"></i> Edit </a>-->
                                 <a href="#" class="viewName btn btn-sm btn-primary" id ="'.$row['namesId'].'" data-toggle="modal" data-target="#myModal2" ><i class="fa fa-eye mx-1" data-toggle="tooltip" title="View details"></i> View Name</a>          
                                 </td>
                             </tr>  ';
@@ -458,6 +503,35 @@ public function getMyNames($email){
                 }
         }
    }
+
+
+   public function getMyPublishedNames($email){
+    //<a href="#" class="deleteName btn btn-sm btn-primary" id ="'.$row['namesId'].'"><i class="fa fa-trash mx-1" data-toggle="tooltip"  title="Delete this name"></i></a>                             
+       $memId   = $this->getMemberDetails($email)['memId'];
+       $con        = self::con(); 
+       $query      = $con->query("SELECT * FROM `names` WHERE `addedBy` ='$memId' AND `published`='1' ORDER BY `date_created` DESC");
+       if($query){
+            if($query->num_rows>0){
+                  $i = 0;
+                    while($row = $query->fetch_assoc()){
+                            echo ' <tr>
+                                    <td>'.(++$i).'</td>
+                                    <td>'.$row['name'].'</td>
+                                    <td>'.$row['pronounce'].'</td>
+                                    <td>'. htmlentities($row['meaning']).'</td>
+                                    <td>Published</td> 
+                                    <td>'.$this->getLpByName($memId,$row['namesId']).'</td> 
+                                    <td>
+                                    <!--<a href="index.php?pg=editName&nId='.$row['namesId'].'" class=" btn btn-sm btn-primary" id ="'.$row['namesId'].'"><i class="fa fa-pencil mx-1" data-toggle="tooltip"  title="Edit this name"></i> Edit </a>-->
+                                    <a href="#" class="viewName btn btn-sm btn-primary" id ="'.$row['namesId'].'" data-toggle="modal" data-target="#myModal2" ><i class="fa fa-eye mx-1" data-toggle="tooltip" title="View details"></i> View Name</a>          
+                                    </td>
+                                </tr>  ';
+                        }
+                    }else{
+                        echo '<tr> <td colspan ="6">No Record Yet!</td>  </tr>';
+                    }
+            }
+       }
 //========================================================================///
 
 public function nameSearch($name){
@@ -476,15 +550,15 @@ public function nameSearch($name){
                             <div class="pt-4 border-bottom">
                                 <a class="d-block h4" data-toggle="collapse" href="#details_'.$row['namesId'].'" role="button" aria-expanded="false" aria-controls="details_'.$row['namesId'].'">
                                 <u style ="color:#001098;">'.ucfirst($row['name']).'</u></a>                               
-                                <p class="page-description mt-1 w-75 text-muted"> <h6 class="h5">Pronunciation: </h5>'.$row['pronounce'].' </p>
+                                <p class="page-description mt-1 w-75 text-muted"> <h6 class="h5">Meaning: </h5> '. htmlentities($row['meaning']).'</p>
                             
                                 <div class="collapse multi-collapse" id="details_'.$row['namesId'].'">
-                                <div class="page-description text-muted mb-2"> <h6 class="h5">Other Forms   </h5> '.$row['otherForms'].'  </div>
-                                <div class="page-description text-muted mb-2"> <h6 class="h5">Usage         </h5> '.$row['nameUsage'].'   </div>
-                                <div class="page-description text-muted mb-2"> <h6 class="h5">History       </h5> '.$row['history'].'   </div>
-                                <div class="page-description text-muted mb-2"> <h6 class="h5">Origin        </h5> '.$row['origin'].'      </div>
-                                <div class="page-description text-muted mb-2"> <h6 class="h5">Meaning       </h5> '. htmlentities($row['meaning']).' </div>
-                                <div class="page-description text-muted mb-2"> <h6 class="h5">Personality   </h5> '.$row['personality'].' </div>
+                                    <div class="page-description text-muted mb-2"> <h6 class="h5">Other Forms   </h5> '.$row['otherForms'].'  </div>
+                                    <div class="page-description text-muted mb-2"> <h6 class="h5">Pronunciation </h5> '.$row['pronounce'].'  </div>
+                                    <div class="page-description text-muted mb-2"> <h6 class="h5">Origin        </h5> '.$row['origin'].'      </div>
+                                    <div class="page-description text-muted mb-2"> <h6 class="h5">Usage         </h5> '.$row['nameUsage'].'   </div>
+                                    <div class="page-description text-muted mb-2"> <h6 class="h5">History       </h5> '.$row['history'].'   </div>
+                                    <div class="page-description text-muted mb-2"> <h6 class="h5">Personality   </h5> '.$row['personality'].' </div>
                                 </div>
                                 
                             </div>
@@ -696,4 +770,4 @@ public function checkUserExist($con,$email,$table,$email_field){
  }
  
  $user = new User();
-//  $user->getAdminIds();
+//  $user->getAdminId();

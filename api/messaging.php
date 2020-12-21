@@ -42,7 +42,7 @@ class Message extends Database{
 // Get all Messages sent to me AND `replyMsgId`='0' 
 public function myInbox($memId){
     $con     = self::con(); 
-    $query   = $con->query("SELECT * FROM `messages` WHERE `receiverId`='$memId' ORDER BY `createdAt`");
+    $query   = $con->query("SELECT * FROM `messages` WHERE `receiverId`='$memId' ORDER BY `createdAt` DESC");
    if($query){
        $counter =0;
        $output ="";
@@ -76,7 +76,7 @@ public function myInbox($memId){
 // Get all Messages I sent sent
 public function myOutbox($memId){
     $con     = self::con(); 
-    $query   = $con->query("SELECT * FROM `messages` WHERE `senderId`='$memId' AND `replyMsgId`= '0' ORDER BY `createdAt`");
+    $query   = $con->query("SELECT * FROM `messages` WHERE `senderId`='$memId' AND `replyMsgId`= '0' ORDER BY `createdAt` DESC");
    if($query){
        $counter =0;
        $output ="";
@@ -163,7 +163,12 @@ public function getMessageDetail($msgId){
                                 <h4 class="media-heading ml-2"> <small> From </small>'.$this->getSenderName($row['senderId']).'<small>...</small></h4>
                                 <small class="ml-2">'.date('jS F Y', strtotime($row['createdAt'])).'</small>
                             </div>
-                            <a href="#m" class="btn btn-primary btn-sm float-right replyMsg" data-toggle="modal" id ="'.$msgId.'" data-name ="'.$this->getSenderName($row['senderId']).'" data-target="#modal_aside_right_1"><i class="fa fa-share"></i></a>
+                            <a href="#m" class="btn btn-primary btn-sm float-right replyMsg" 
+                                         data-toggle="modal" id ="'.$msgId.'" 
+                                         data-id   = "'.$row['senderId'].'"
+                                         data-name ="'.$this->getSenderName($row['senderId']).'" 
+                                         data-target="#modal_aside_right_1"><i class="fa fa-share"></i>
+                                         </a>
                         </div>
                     </div><!-- /.panel-heading -->
                    <div class="card-body">
@@ -183,7 +188,7 @@ public function getMessageDetail($msgId){
 ///////// User Specific messages/////  AND `replyMsgId`=0 <i class="fa fa-envelope mx-1" aria-hidden="true"></i> 
 public function getUserInbox($memId){
     $con     = self::con(); 
-    $query   = $con->query("SELECT * FROM `messages` WHERE `receiverId`='$memId' ORDER BY `createdAt`");
+    $query   = $con->query("SELECT * FROM `messages` WHERE `receiverId`='$memId' ORDER BY `createdAt` DESC");
     if($query){ 
         if($query->num_rows>0){
             $output ="";
@@ -193,7 +198,15 @@ public function getUserInbox($memId){
                                 <div class="card-header" role="tab" id="heading'.$row['msgId'].'">
                                 <div class="mb-1">
                                     <a data-toggle="collapse" data-parent="#accordion" href="#collapse'.$row['msgId'].'" aria-expanded="false" aria-controls="collapseOne" class="collapsed">
-                                        <p><small>'.$this->getSenderName($row['senderId']).' &nbsp; <i class="fa fa-share replyMsg ml-1" data-toggle="modal" data-target="#modal_aside_right_2"></i></small>
+                                        <p>
+                                            <small>'.$this->getSenderName($row['senderId']).' 
+                                            &nbsp; <i class="fa fa-share replyMsg ml-1" 
+                                                             data-toggle="modal" 
+                                                             id        = "'.$row['msgId'].'"
+                                                             data-id   = "'.$row['senderId'].'"
+                                                             data-name = "'.$this->getSenderName($row['senderId']).'"
+                                                             data-target="#modal_aside_right_2"></i> 
+                                            </small>
                                             <small class="float-right">'.date('jS F Y', strtotime($row['createdAt'])).'<i class="fa fa-angle-right" aria-hidden="true"></i></small>
                                         </p>
                                         <p>'.$row['msgTitle'].'</p>
@@ -203,6 +216,7 @@ public function getUserInbox($memId){
                                 </div>
                                 <div id="collapse'.$row['msgId'].'" class="collapse" role="tabpanel" aria-labelledby="heading'.$row['msgId'].'" aria-expanded="false">
                                 <div class="card-body p-2"> '.$row['msg'].'</div>
+                                <div>'.$this->getRepliesToMessage($row['msgId']).'</div>
                                 </div>
                             </div>  <!-- End of Card --> 
                   
@@ -227,7 +241,6 @@ public function getuserOutBox($memId){
                    <div class="card-header" role="tab" id="heading'.$row['msgId'].'">
                      <div class="mb-1">
                        <a data-toggle="collapse" data-parent="#accordion" href="#collapse'.$row['msgId'].'" aria-expanded="false" aria-controls="collapseOne" class="collapsed">
-                         <i class="fa fa-envelope" aria-hidden="true"></i>
                            <p><small>'.$this->getSenderName($row['senderId']).'<small class="float-right mr-4">'.date('jS F Y', strtotime($row['createdAt'])).'</small></small></p>
                            <p><small>'.$row['msgTitle'].'</small></p>
                        </a>
@@ -269,9 +282,8 @@ private function getRepliesToMessage($msgId){
                 </a>
                 </p>';
             }
-        }else{
-            $output.="No Replies yet!";
-        }
+        } 
+        //else{  $output.="No Replies yet!";  }
    }else{
     $output.="Error Occured ".$con->error;
    }

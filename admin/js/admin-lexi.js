@@ -132,6 +132,40 @@ $(document).ready(function(){
         });
     });
 
+
+///////////////////////// SEND MESSAGE //////////////////////////////////
+//  Replying message
+let $doc = $(document);
+$doc.on('click', ".sendMsg", function(evt){
+    evt.preventDefault(); 
+    let adminId   = $(this).attr('id');  // ID of the ADMIN who approved the name
+    let adminName = $(this).attr('data-ab');
+    $("#nameHelp").html(adminName);                // Name of the Admin to receive the message
+    $("#rec_Id").val(adminId);                // ID of the Admin who Approved the name/receiver of this message
+    $doc.on("submit","#sendMessageForm", function(evt){
+        evt.preventDefault();
+        let data = $("#sendMessageForm").serialize();
+        $(".result_msg").html('<i class="fa fa-spinner fa-spin fa-3x"></i> Sending...');
+        $.ajax({
+            url:lexiApi,
+            method:"post",
+            data:data,
+            success: (res)=>{
+                if(res==1){
+                    $(".result_msg").html('<p class ="alert alert-success"> Message Sent! </p>');
+                    setTimeout(function(){ $(".result_msg").slideUp(2000); $("#sendMessageForm").trigger('reset'); },1000);
+                }else{
+                    $(".result_msg").html('<p class ="alert alert-danger">'+res+'</p>');
+                }
+            }
+        });
+    });
+});
+///////////////////////// SEND MESSAGE </end>//////////////////////////////////
+
+
+
+
 /////---==============//////////===========-----------==========//
 // Assigning Lexipoints   :: npart  memId  namesId
 let totalLexipoint = [];
@@ -246,9 +280,34 @@ $(document).on("click",'.flagNameWaiting',function() {
 });
 
 
-//////////=============//////////////////////////////////////////////////////////
+///////////////////////=============//////////////////////////////////////////////////////////
 
+//////////////// COMPLETED WORKING ON A NAME ////////////////////////////////////////////////  
+$(document).on("click",'.nameCompleted',function() {
+    let $this   = $(this);
+    let namesId    = $(this).attr('id'); 
+    let addedById  = $(this).attr('data-id'); 
+    $this.html('<i class="fa fa-spinner fa-spin"></i>');
+    if(confirm("Are you sure you have completed working on this name ?")){
+        $(".result_name").html('...please wait<i class="fa fa-spinner fa-spin"></i>'); 
+            $.ajax({
+                url:lexiApi,
+                method:"post",
+                data:{action:'completed',nId:namesId,memId:addedById},
+                success: (res)=>{
+                    if(res==1){ 
+                        $(".result_name").html(`<p class ="alert alert-success">Successfully Completed</p>`);
+                        $this.hide(1000);
+                        setTimeout(function(){ location.reload();},2000);
+                    }else{
+                        $(".result_name").html(`<p class ="alert alert-danger">${res}</p>`);
+                    }
+                }
+            });
+        }  
+});
 
+/////////////// <COMPLETED WORKING ON A NAME ///////////////////////////////////////////////
 
 
 // //////////////////////////////////  View Name details ////////////////////////////////
