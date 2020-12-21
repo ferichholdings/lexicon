@@ -245,7 +245,9 @@ private function getNameCharateristics($char){
                     }else{
                         $output .='<td> <span class ="badge badge-info">Admin</span> </td>';
                     }
-                    $output .='<td> '.date("D, M Y H:i A",strtotime($row['createdAt'])).'</td>
+                    $output .='<td>'.$this->adminTotalCompletedNames($row['adminId']).'</td>
+                               <td>'.$this->adminTotalInProgressNames($row['adminId']).'</td>
+                               <td> '.date("D, M Y H:i A",strtotime($row['createdAt'])).'</td>
                                 <td>
                                     <a href="#editEmployeeModal"   class="edit"    id="'.$row['adminId'].'"   data-toggle="modal"><i class="fa fa-pencil" data-toggle="tooltip" title="A"></i></a>
                                     <a href="#deleteEmployeeModal" class="delAdmin"  id="'.$row['adminId'].'" data-toggle="modal"><i class="fa fa-trash"  data-toggle="tooltip" title="Delete this name"></i></a>                              
@@ -1330,7 +1332,6 @@ private function adminTotalCompletedNames($adminId){
     }
     $con->close();
 }
-
 
 
 // This returns the total Number of names completed by this ADMIN
