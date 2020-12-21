@@ -1048,8 +1048,8 @@ public function getAllApprovedNames(){
                        $output.='<td>'.$this->getLpByName($row['addedBy'],$row['namesId']).'</td>
                                  <td>'.$this->getAdminNameWokingOnName($row['namesId']).'</td>
                                  <td>
-                                 <a href="#" class="publishName btn btn-sm btn-primary" id ="'.$row['namesId'].'"><i class="fa fa-check mx-1" data-toggle="tooltip"></i> publish </a>
-                                 <a href="#" class="viewName btn btn-sm btn-primary" id ="'.$row['namesId'].'" data-toggle="modal" data-target="#myModal2" ><i class="fa fa-eye mx-1" data-toggle="tooltip" title="View details"></i> view</a>          
+                                 <a href="#" class="publishName btn btn-sm btn-primary" id ="'.$row['namesId'].'"><i class="fa fa-check mx-1" data-toggle="tooltip"></i> Publish </a>
+                                 <a href="#" class="viewName btn btn-sm btn-primary" id ="'.$row['namesId'].'" data-toggle="modal" data-target="#myModal2" ><i class="fa fa-eye mx-1" data-toggle="tooltip" title="View details"></i> View</a>          
                                  <a href="#" class="sendMsg btn btn-sm btn-primary" id ="'.$row['namesId'].'"  data-ab ="'.$this->getSenderName($row['approvedBy']).'" data-id ="'.$row['approvedBy'].'" data-toggle="modal" data-target="#modal_aside_right_1"><i class="fa fa-send mx-1" data-toggle="tooltip"  title="Send Message to the admin who appproved this name"></i> Message Admin</a>
                                  </td>  
                              </tr>  ';
